@@ -1,0 +1,206 @@
+<!-- File: PaymentDialog.html (Version 8 - Definitive UI) -->
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input, select, textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #45a049; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        #status { margin-top: 15px; font-weight: bold; }
+        .display-field { background-color: #e9e9e9; padding: 8px; border-radius: 4px; font-weight: bold; color: #333; min-height: 1.2em; white-space: pre-wrap; }
+        #existing-notes-section { display: none; } /* Hidden by default */
+        #main-form-content { display: none; } /* Hidden by default */
+        #success-screen { display: none; text-align: center; padding: 40px 20px; }
+        #success-screen h2 { color: #4CAF50; }
+        .button-group button { margin: 0 10px; }
+        #exit-button { background-color: #f44336; }
+    </style>
+</head>
+<body>
+    <div id="payment-form">
+        <div class="form-group">
+            <label for="payment-date">Payment Month:</label>
+            <input type="month" id="payment-date">
+        </div>
+        <div class="form-group">
+            <label for="property-select">Select Property:</label>
+            <select id="property-select" required>
+                <option value="">Loading properties...</option>
+            </select>
+        </div>
+
+        <!-- This entire section will be shown/hidden -->
+        <div id="main-form-content">
+            <div class="form-group">
+                <label>Amount to Pay (Property Owes):</label>
+                <div id="owes-amount-display" class="display-field"></div>
+            </div>
+            <div class="form-group">
+                <label>Existing Payment for this Month:</label>
+                <div id="existing-payment-display" class="display-field"></div>
+            </div>
+            <div id="existing-notes-section" class="form-group">
+                <label>Existing Notes:</label>
+                <div id="existing-notes-display" class="display-field" style="height: 80px; overflow-y: auto; font-weight: normal;"></div>
+            </div>
+            <div class="form-group">
+                <label for="notes">Add New Note:</label>
+                <textarea id="notes" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="amount">Amount Received:</label>
+                <input type="text" id="amount" required placeholder="e.g., 500 or 450+50">
+            </div>
+            <button id="submit-button" onclick="submitPayment()">Apply Payment</button>
+            <div id="status"></div>
+        </div>
+    </div>
+
+    <div id="success-screen">
+        <h2 id="success-message"></h2>
+        <div class="button-group">
+            <button id="add-new-button" onclick="showForm()">Add New Payment</button>
+            <button id="exit-button" onclick="google.script.host.close()">Exit</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            document.getElementById('payment-date').value = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+            google.script.run.withSuccessHandler(populateProperties).getPropertiesList();
+            document.getElementById('property-select').addEventListener('change', onSelectionChange);
+            document.getElementById('payment-date').addEventListener('change', onSelectionChange);
+        });
+
+        function populateProperties(properties) {
+            const select = document.getElementById('property-select');
+            select.innerHTML = '<option value="">-- Select Property --</option>';
+            properties.forEach(prop => select.add(new Option(prop, prop)));
+        }
+
+        function onSelectionChange() {
+            const propertyName = document.getElementById('property-select').value;
+            const paymentDateInput = document.getElementById('payment-date').value;
+            const mainContent = document.getElementById('main-form-content');
+
+            if (propertyName && paymentDateInput) {
+                mainContent.style.display = 'block';
+                const formattedDate = formatDate(paymentDateInput);
+                document.getElementById('owes-amount-display').textContent = 'Loading...';
+                document.getElementById('existing-payment-display').textContent = 'Checking...';
+                google.script.run.withSuccessHandler(updateOwesAmountDisplay).getPropertyOwesAmount(propertyName);
+                google.script.run.withSuccessHandler(updateExistingDataDisplay).getExistingData(propertyName, formattedDate);
+            } else {
+                mainContent.style.display = 'none';
+            }
+        }
+
+        function updateOwesAmountDisplay(amount) {
+            document.getElementById('owes-amount-display').textContent = amount;
+        }
+
+        function updateExistingDataDisplay(data) {
+            if (data.error) {
+                document.getElementById('existing-payment-display').textContent = data.error;
+                return;
+            }
+            const paymentDiv = document.getElementById('existing-payment-display');
+            const notesSection = document.getElementById('existing-notes-section');
+            const notesDiv = document.getElementById('existing-notes-display');
+            const submitButton = document.getElementById('submit-button');
+
+            // Handle existing payment
+            if (data.existingPayment) {
+                // NOTE: Changed to Dollar ($)
+                paymentDiv.textContent = `Payment already exists: $${data.existingPayment}`;
+                paymentDiv.style.color = '#e65100';
+                submitButton.textContent = 'Apply Update';
+            } else {
+                paymentDiv.textContent = 'No payment found for this month.';
+                paymentDiv.style.color = '#333';
+                submitButton.textContent = 'Apply Payment';
+            }
+
+            // Handle existing notes
+            if (data.existingNotes) {
+                notesSection.style.display = 'block';
+                notesDiv.textContent = data.existingNotes;
+            } else {
+                notesSection.style.display = 'none';
+            }
+        }
+        
+        function formatDate(inputDate) {
+            const [year, month] = inputDate.split('-');
+            const dateObj = new Date(year, month - 1, 2);
+            return dateObj.toLocaleString('en-US', { month: 'short' }) + '-' + year;
+        }
+
+        function submitPayment() {
+            const propertyName = document.getElementById('property-select').value;
+            const amount = document.getElementById('amount').value;
+            const overwrite = (document.getElementById('submit-button').textContent === 'Apply Update');
+
+            if (!amount) {
+                document.getElementById('status').textContent = 'Amount Received is a required field.';
+                return;
+            }
+
+            // The confirmation logic now resides on the server side for a final check, 
+            // but we can add a client-side one too for better UX if needed.
+            if (overwrite && !confirm('A payment already exists. Are you sure you want to overwrite it?')) {
+                return; // User cancelled
+            }
+            
+            const paymentData = {
+                propertyName: propertyName,
+                paymentDate: formatDate(document.getElementById('payment-date').value),
+                amount: amount,
+                notes: document.getElementById('notes').value,
+                overwrite: overwrite
+            };
+
+            const submitButton = document.getElementById('submit-button');
+            submitButton.disabled = true;
+            document.getElementById('status').textContent = 'Processing...';
+            google.script.run.withSuccessHandler(handleResponse).processPayment(paymentData);
+        }
+
+        function handleResponse(response) {
+            const submitButton = document.getElementById('submit-button');
+            const statusDiv = document.getElementById('status');
+            submitButton.disabled = false;
+            statusDiv.textContent = response.message;
+            
+            if (response.status === 'success') {
+                statusDiv.style.color = 'green';
+                showSuccessScreen(response.message);
+            } else {
+                statusDiv.style.color = 'red';
+            }
+        }
+
+        function showSuccessScreen(message) {
+            document.getElementById('payment-form').style.display = 'none';
+            document.getElementById('success-screen').style.display = 'block';
+            document.getElementById('success-message').textContent = message;
+        }
+
+        function showForm() {
+            document.getElementById('payment-form').style.display = 'block';
+            document.getElementById('success-screen').style.display = 'none';
+            document.getElementById('main-form-content').style.display = 'none'; // Hide content again
+            document.getElementById('property-select').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('notes').value = '';
+            document.getElementById('status').textContent = '';
+        }
+    </script>
+</body>
+</html>

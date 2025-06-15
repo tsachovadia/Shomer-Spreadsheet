@@ -1,0 +1,22 @@
+אני צריך לייצר דוקומנטציה של הנוסחאות ולהוסיף את הסקריפט הזה לפה- הצורה שבה ייצרתי את הדוקומנטציה לbms צריכה להשתכפל והלוגיקה שלה צריכה לשבת פה
+ברגע שהיא תשב פה אני אוכל לייצר קוד שמייצר בצורה תקופתית :
+1. תיעוד של כל הנוסחאות והגליונות
+2. שליחה שלהן למודל בינה חכם יחד עם הדוקומנטציה הקודמת - תוך שמירה על פורמט אחיד ותשומת דגש לשינויים
+3. אם נרצה לייצר שינוי גלובלי זה יהיה אפשרי מאחר ותהיה לנו גישה ללוגיקה ולמידע ונוכל לייצר שכפול של הקובץ המקורי ולבקש מהבינה לשנות את הנוסחאות המתאימות
+
+
+אני רוצה לשלוח את הצאט לחפש mcp server אנחנו משתמשים בquickbooks onnline ויש לנו כמה חברות והייתי רוצה לייצר מיפוי וממש לעבור על כל הquickbooks שלנו דרך הצאט פה
+אז צריך למצוא אחד כזה לquickbook ולהגדיר אותו לcursor 
+
+פיצ׳רים הבאים בתור :
+1. אני צריך לייצר את פורטל המשקיעים 
+הפורטל הזה חשוב לנו כדי לגייס כספים - הוא יקרה רק אחרי שנתעד את כל הגליון של המשקיעים 
+2. אני צריך להוסיף לדיאלוג התשלומים אופציה של חיפוש בתים
+3. אני צריך לייצר חיפוש מעמיק באינטרנט לגבי הסטנדרט של מערכת כזו של ניהול הלוואות ומשכנתאות ככה שאם נרצה ללכת למשקיעים גדולים זה ייראה רציני (גם מבחינת פיצרים וגם מבחינת נראות)
+4. אני צריך להבין ולתעד בדיוק רב את איך שהקוויקבוקס והחשבונאות בעסק שלנו עובדת... מרדכי השותף שלי רוצה שנייצר journal entry בלחיצת כפתור
+צריך לייצר לזה גם דיאלוג שישאב את המידע מטבלאות הסיכום ויבקש אישור להכניס אותו
+5.בכל בית יש טבלא ריקה שהכנתי עבור האינטגרציה עם הקוויקבוקס... זה עניין שאולי נרצה לעטוף בmcp server או פשוט לדעת מה הדרך לתקשר עם quickbooks online
+לכל נכס של החברה יש bin (or somthing like that i dont know exactly the name ) in segula, and in chayil
+and in macabi... each payment recived in the bank for chayil is payed by the tennat then our worker perach is labeling the payemnt to the proper house bin installment payment so i should keep for each property the exact id or Uniqe key to communicate with the bank with the bin, and then maybe in the payment screen we can ask for the bin and then we can search for the payment in the bank and then we can pay it dialog to suggest perach a way to auto categorize it through integration, that would be wonderful 
+6. numbering the property? we have an issue that if we sold the house from chayil to segula and the the tennat didnt finish the land contract , it goes back to segula... what happens then?
+7. a lot of the payments are reported through whatsapp with screenshot, and also a lot of the actiity (invoices, rehabs and stuff), i can export the data with the media to analyze it with ai and thing about extra features for automating our businees further...
