@@ -1,0 +1,42 @@
+{
+    "bms": {
+        "spreadsheet_id": "11PnSn-4iX9sxNegMyW10df5DRlT_jFa6Ji1FSKEhOFQ",
+        "config": {
+            "templateSheetName": "House template",
+            "houseSheetNamePattern": "^(Copy of \\d{4} E \\d{2} ST \\d?|\\d{4} E \\d{2} ST \\d?)$",
+            "otherSheetsToProcess": [
+                "Summary",
+                "Monthly payment"
+            ]
+        }
+    },
+    "investors": {
+        "spreadsheet_id": "1dMpnv4KoKcZfuhd8WoIS8hrG39hLW5Ldh38BTMSvkJk",
+        "config": {
+            "templateSheetName": null,
+            "houseSheetNamePattern": null,
+            "otherSheetsToProcess": [
+                "Pool Properties",
+                "SG1",
+                "Chayil",
+                "hila kligman",
+                "david ishay",
+                "harvinder",
+                "mordechai",
+                "habib",
+                "morsikh"
+            ]
+        }
+    },
+    "investors_legacy": {
+        "spreadsheet_id": "1dMpnv4KoKcZfuhd8WoIS8hrG39hLW5Ldh38BTMSvkJk",
+        "config": {
+            "templateSheetName": null,
+            "houseSheetNamePattern": null,
+            "otherSheetsToProcess": [
+                "Pool Properties", "SG1", "Chayil", "hila kligman", 
+                "david ishay", "harvinder", "mordechai", "habib", "morsikh"
+            ]
+        }
+    }
+} 

@@ -1,0 +1,14 @@
+Payment_ID,Investment_ID,Payment_Date,Payment_Amount
+hila_payment_01,hila01,2025-04-01,4201.50
+habib_payment_01,habib01,2024-04-01,1358.90
+habib_payment_02,habib01,2024-07-01,4000
+habib_payment_03,habib01,2024-10-01,4000
+morsikh_payment_01,morsikh01,2023-01-03,40000
+morsikh_payment_02,morsikh01,2023-10-31,33473
+morsikh_payment_03,morsikh01,2023-10-31,29859
+morsikh_payment_04,morsikh01,2023-12-14,10935
+morsikh_payment_05,morsikh01,2023-12-14,6893
+morsikh_payment_06,morsikh01,2023-12-14,20000
+morsikh_payment_07,morsikh01,2023-12-14,70000
+morsikh_payment_08,morsikh01,2024-11-19,183000
+morsikh_payment_09,morsikh01,2025-05-27,74914.48 

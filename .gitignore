@@ -1,0 +1,13 @@
+# Local environment files
+.DS_Store
+*.env
+venv/
+.venv/
+
+# Google API Credentials
+credentials.json
+token.json
+
+# Python cache
+__pycache__/
+*.pyc 

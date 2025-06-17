@@ -1,0 +1,20 @@
+{
+    "investors": {
+        "spreadsheet_id": "1dMpnv4KoKcZfuhd8WoIS8hrG39hLW5Ldh38BTMSvkJk",
+        "config": {
+            "templateSheetName": null,
+            "houseSheetNamePattern": null,
+            "otherSheetsToProcess": [
+                "Pool Properties",
+                "SG1",
+                "Chayil",
+                "hila kligman",
+                "david ishay",
+                "harvinder",
+                "mordechai",
+                "habib",
+                "morsikh"
+            ]
+        }
+    }
+} 
