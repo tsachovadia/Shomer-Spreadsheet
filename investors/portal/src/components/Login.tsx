@@ -46,10 +46,7 @@ const Login = ({ onLogin }: LoginProps) => {
       <div className="w-full max-w-md">
         {/* Logo Section */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-lg mb-4">
-            <div className="text-2xl font-bold text-indigo-600">S</div>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Segula</h1>
+            <img src="/brand_assets/svg/Color logo - no background.svg" alt="Segula Logo" className="h-16 w-auto mx-auto mb-4" />
           <p className="text-gray-600">Investor Portal</p>
         </div>
 
