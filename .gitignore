@@ -20,3 +20,5 @@ __pycache__/
 # Solution files
 *.sln
 *.sw? 
+# Ignore credentials files
+desktop_credentials.json
