@@ -3,7 +3,6 @@ import { useState } from "react";
 import Login from "../components/Login";
 import Dashboard from "../components/Dashboard";
 import InvestmentGroup from "../components/InvestmentGroup";
-import AgreementPage from "./AgreementPage";
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -42,16 +41,6 @@ const Index = () => {
           element={
             isAuthenticated ? (
               <InvestmentGroup user={currentUser} />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          } 
-        />
-        <Route 
-          path="/group/:groupId/agreement"
-          element={
-            isAuthenticated ? (
-              <AgreementPage />
             ) : (
               <Navigate to="/" replace />
             )

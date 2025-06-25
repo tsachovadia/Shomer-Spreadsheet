@@ -10,6 +10,9 @@ function doGet(e) {
     let response;
 
     switch (action) {
+      case 'isAuthorized':
+        response = isUserAuthorized(e.parameter.email);
+        break;
       case 'login':
         response = loginUser(e.parameter.email, e.parameter.password);
         break;
@@ -39,6 +42,28 @@ function createJsonResponse(data) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+/**
+ * Checks if a user's email exists in the portal users sheet.
+ */
+function isUserAuthorized(email) {
+  if (!email) {
+    throw new Error("Email parameter is required for authorization check.");
+  }
+  
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const usersSheet = ss.getSheetByName(PORTAL_USERS_SHEET_NAME);
+  if (!usersSheet) throw new Error(`Sheet '${PORTAL_USERS_SHEET_NAME}' not found.`);
+
+  const usersData = usersSheet.getDataRange().getValues();
+
+  for (let i = 1; i < usersData.length; i++) {
+    if (usersData[i][0] === email) {
+      return { isAuthorized: true };
+    }
+  }
+
+  return { isAuthorized: false };
+}
 
 function getUserDashboard(email) {
   if (!email) {
