@@ -20,7 +20,7 @@ const Login = ({ onLogin }: LoginProps) => {
       const user = result.user;
 
       // Client-side authorization check
-      const API_URL = import.meta.env.VITE_API_URL;
+        const API_URL = import.meta.env.VITE_API_URL;
       const authCheckUrl = `${API_URL}?action=isAuthorized&email=${encodeURIComponent(user.email!)}`;
       const authResponse = await fetch(authCheckUrl);
       const authData = await authResponse.json();
@@ -29,9 +29,9 @@ const Login = ({ onLogin }: LoginProps) => {
         // If not authorized, sign out immediately and show an error
         await signOut(auth);
         throw new Error("This email address is not authorized for access.");
-      }
-      
-      onLogin({
+        }
+
+        onLogin({
         email: user.email,
         name: user.displayName,
       });
@@ -49,7 +49,7 @@ const Login = ({ onLogin }: LoginProps) => {
         setError(`An unexpected error occurred: ${error.message}`);
       }
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
   };
 

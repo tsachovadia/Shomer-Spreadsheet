@@ -94,51 +94,33 @@ function getUserDashboard(email) {
   const qPayment = investorSheet.getRange('L5').getValue();
   const investmentGroupId = investorSheet.getRange('M5').getValue();
   
-  const ledgerRange = investorSheet.getRange('A4:F'); // Get range from header row
-  const ledgerData = ledgerRange.getValues();
+  const ledgerRange = investorSheet.getRange('A4:F'); 
+  const rawLedgerData = ledgerRange.getValues();
+  const ledgerHeaders = rawLedgerData.shift(); // Remove header row
   
-  let totalInvestment = 0;
-  let firstInvestmentDate = 'N/A';
-  const paymentHistory = [];
+  const fullLedgerData = rawLedgerData.map(row => {
+    // Stop if the row is empty (based on the date column)
+    if (!row[0]) return null;
 
-  // Start loop from 1 to skip the header row (A4)
-  for (let i = 1; i < ledgerData.length; i++) {
-    const row = ledgerData[i];
-    const dateValue = row[0];
-    
-    // Check if the row is empty to stop processing
-    if (!dateValue) break;
+    return {
+      date: row[0],
+      openingBalance: row[1],
+      deposit: row[2],
+      withdrawal: row[3],
+      interest: row[4],
+      endingBalance: row[5]
+    };
+  }).filter(Boolean); // Filter out null values for empty rows
 
-    const borrowed = parseFloat(String(row[2]).replace(/,/g, '')) || 0;
-    const payment = parseFloat(String(row[3]).replace(/,/g, '')) || 0;
-
-    // Find the first investment date (first date with a 'Borrowed' amount)
-    if (borrowed > 0 && firstInvestmentDate === 'N/A') {
-      firstInvestmentDate = dateValue;
-      totalInvestment = borrowed; // Set the initial investment amount only once
-    }
-
-    // If there was a payment on this date, add it to history
-    if (payment > 0) {
-       paymentHistory.push({
-          date: dateValue,
-          amount: payment
-        });
-    }
-  }
-
-  // 4. Calculate next payment date
   const nextPaymentDate = getNextPaymentDate();
 
   return {
     fullName: fullName,
-    totalInvestment: totalInvestment,
-    firstInvestmentDate: firstInvestmentDate,
     currentBalance: currentBalance,
     nextPaymentAmount: qPayment,
     nextPaymentDate: nextPaymentDate,
     investmentGroupId: investmentGroupId,
-    paymentHistory: paymentHistory
+    ledgerData: fullLedgerData // The new, full ledger data
   };
 }
 
@@ -150,6 +132,16 @@ function getGroupDetails(groupId) {
 
     if (!groupSheet) throw new Error(`Group sheet '${groupId}' not found.`);
 
+    // Create a map of investor names to emails for efficient lookup
+    const usersSheet = ss.getSheetByName(PORTAL_USERS_SHEET_NAME);
+    if (!usersSheet) throw new Error(`Sheet '${PORTAL_USERS_SHEET_NAME}' not found.`);
+    const usersData = usersSheet.getDataRange().getValues();
+    const emailMap = usersData.reduce((map, row) => {
+      // Assuming email is in col 0 and investor sheet name (used as name) is in col 1
+      map[row[1]] = row[0];
+      return map;
+    }, {});
+
     const partnershipLink = groupSheet.getRange("B2").getValue();
     const collateralRatio = groupSheet.getRange("F2").getDisplayValue();
     const totalFunds = parseFloat(String(groupSheet.getRange("D2").getValue()).replace(/[^0-9.-]+/g,"")) || 0;
@@ -160,8 +152,10 @@ function getGroupDetails(groupId) {
         if (!investorsDataRange[i][0]) {
             break; 
         }
+        const investorName = investorsDataRange[i][0];
         investorMix.push({
-            investor: investorsDataRange[i][0],
+            investor: investorName,
+            email: emailMap[investorName] || null, // Add email from the map
             currentBalance: investorsDataRange[i][1],
             percentage: investorsDataRange[i][2]
         });

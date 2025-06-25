@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -16,31 +16,52 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { DollarSign, TrendingUp, Calendar, ArrowRight, LogOut, Landmark, History } from "lucide-react";
+import { DollarSign, TrendingUp, Calendar, ArrowRight, LogOut, Landmark, History, Mail } from "lucide-react";
+import LedgerTable from "../components/LedgerTable";
 
 interface DashboardProps {
   user: any;
+  onLogout: () => void;
 }
 
-interface Payment {
+interface LedgerEntry {
   date: string;
-  amount: number;
+  openingBalance: number;
+  deposit: number;
+  withdrawal: number;
+  interest: number;
+  endingBalance: number;
 }
 
 interface DashboardData {
-  totalInvested: number;
   currentBalance: number;
-  nextPayment: number;
+  nextPaymentAmount: number;
   nextPaymentDate: string;
   investmentGroupId: string;
-  firstInvestmentDate: string;
-  paymentHistory: Payment[];
+  ledgerData: LedgerEntry[];
+  fullName: string;
 }
 
-const Dashboard = ({ user }: DashboardProps) => {
+const Dashboard = ({ user, onLogout }: DashboardProps) => {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
+  const getGreeting = () => {
+    const currentHour = new Date().getHours();
+    if (currentHour < 12) {
+      return "Good Morning";
+    } else if (currentHour < 18) {
+      return "Good Afternoon";
+    } else {
+      return "Good Evening";
+    }
+  };
+
+  const getFirstName = (fullName: string) => {
+    if (!fullName) return "";
+    return fullName.split(' ')[0];
+  };
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -54,13 +75,12 @@ const Dashboard = ({ user }: DashboardProps) => {
           throw new Error(data.error);
         }
         setDashboardData({
-          totalInvested: data.totalInvestment,
           currentBalance: data.currentBalance,
-          nextPayment: data.nextPaymentAmount,
+          nextPaymentAmount: data.nextPaymentAmount,
           nextPaymentDate: data.nextPaymentDate,
           investmentGroupId: data.investmentGroupId,
-          firstInvestmentDate: data.firstInvestmentDate,
-          paymentHistory: data.paymentHistory || [],
+          ledgerData: data.ledgerData || [],
+          fullName: data.fullName,
         });
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
@@ -71,6 +91,11 @@ const Dashboard = ({ user }: DashboardProps) => {
 
     fetchDashboardData();
   }, [user.email]);
+
+  const totalPrincipalInvested = useMemo(() => {
+    if (!dashboardData?.ledgerData) return 0;
+    return dashboardData.ledgerData.reduce((acc, entry) => acc + Number(entry.deposit || 0), 0);
+  }, [dashboardData]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -110,15 +135,20 @@ const Dashboard = ({ user }: DashboardProps) => {
             <div className="flex items-center">
               <img src="/brand_assets/svg/Color logo - no background.svg" alt="Segula Logo" className="h-10 w-auto" />
             </div>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => window.location.reload()}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
+            <div className="flex items-center space-x-2">
+              <a href="mailto:info@macabi.us" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10">
+                <Mail className="h-5 w-5 text-gray-600" />
+              </a>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={onLogout}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -128,7 +158,7 @@ const Dashboard = ({ user }: DashboardProps) => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome, {user.name}
+            {getGreeting()}, {getFirstName(dashboardData.fullName)}
           </h1>
           <p className="text-gray-600">
             Here's an overview of your investment portfolio.
@@ -140,16 +170,16 @@ const Dashboard = ({ user }: DashboardProps) => {
           <Card className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
-                Initial Investment
+                Total Principal Invested
               </CardTitle>
               <Landmark className="h-4 w-4 text-indigo-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
-                {formatCurrency(dashboardData.totalInvested)}
+                {formatCurrency(totalPrincipalInvested)}
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                First invested on {formatDate(dashboardData.firstInvestmentDate)}
+                The total amount of capital you have invested.
               </p>
             </CardContent>
           </Card>
@@ -165,9 +195,11 @@ const Dashboard = ({ user }: DashboardProps) => {
               <div className="text-2xl font-bold text-gray-900">
                 {formatCurrency(dashboardData.currentBalance)}
               </div>
-              <p className="text-xs text-green-600 mt-1">
-                +{formatCurrency(dashboardData.currentBalance - dashboardData.totalInvested)} growth
-              </p>
+              {(dashboardData.currentBalance > totalPrincipalInvested) && (
+                <p className="text-xs text-green-600 mt-1">
+                  +{formatCurrency(dashboardData.currentBalance - totalPrincipalInvested)} total growth
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -180,7 +212,7 @@ const Dashboard = ({ user }: DashboardProps) => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
-                {formatCurrency(dashboardData.nextPayment)}
+                {formatCurrency(dashboardData.nextPaymentAmount)}
               </div>
               <p className="text-xs text-gray-500 mt-1">
                 Estimated payment amount
@@ -221,41 +253,8 @@ const Dashboard = ({ user }: DashboardProps) => {
           </Card>
         </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center">
-              <History className="h-5 w-5 mr-2 text-indigo-600" />
-              <CardTitle>Payment History</CardTitle>
-            </div>
-            <CardDescription>A record of all payments you have received.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[200px]">Payment Date</TableHead>
-                  <TableHead className="text-right">Amount Received</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {dashboardData.paymentHistory.length > 0 ? (
-                  dashboardData.paymentHistory.map((payment, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-medium">{formatDate(payment.date)}</TableCell>
-                      <TableCell className="text-right font-mono text-green-600 font-semibold">{formatCurrency(payment.amount)}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-center text-gray-500 py-10">
-                      No payments have been recorded yet.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <LedgerTable ledgerData={dashboardData.ledgerData} />
+
       </div>
     </div>
   );

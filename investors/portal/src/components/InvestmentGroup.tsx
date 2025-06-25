@@ -3,11 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
-import { ArrowLeft, ExternalLink, Building, Users, FileText, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ExternalLink, Building, Users, FileText, ShieldCheck, LogOut, Mail } from "lucide-react";
 import { Table, TableHeader, TableBody, TableCell, TableHead, TableRow } from "@/components/ui/table";
 
 interface InvestmentGroupProps {
   user: any;
+  onLogout: () => void;
 }
 
 interface GroupData {
@@ -17,6 +18,7 @@ interface GroupData {
   totalFunds: number;
   investorData: Array<{
     name: string;
+    email: string;
     percentage: number;
     isCurrentUser: boolean;
     currentBalance: number;
@@ -27,7 +29,7 @@ interface GroupData {
   }>;
 }
 
-const InvestmentGroup = ({ user }: InvestmentGroupProps) => {
+const InvestmentGroup = ({ user, onLogout }: InvestmentGroupProps) => {
   const { groupId } = useParams();
   const navigate = useNavigate();
   const [groupData, setGroupData] = useState<GroupData | null>(null);
@@ -46,13 +48,16 @@ const InvestmentGroup = ({ user }: InvestmentGroupProps) => {
           throw new Error(data.error);
         }
 
-        // Add the 'isCurrentUser' flag to the investor data
-        const investorDataWithFlag = data.investorMix.map(inv => ({
-          ...inv,
-          name: inv.investor, // renaming for chart compatibility
-          isCurrentUser: inv.investor === user.name,
-          currentBalance: inv.currentBalance || 0,
-        }));
+        // Add the 'isCurrentUser' flag and anonymize names
+        const investorDataWithFlag = data.investorMix.map((inv, index) => {
+          const isCurrentUser = inv.email === user.email;
+          return {
+            ...inv,
+            name: isCurrentUser ? inv.investor : `Investor ${index + 1}`, // Anonymize name
+            isCurrentUser: isCurrentUser,
+            currentBalance: inv.currentBalance || 0,
+          }
+        });
         
         setGroupData({
           groupName: data.groupName,
@@ -71,7 +76,7 @@ const InvestmentGroup = ({ user }: InvestmentGroupProps) => {
     };
 
     fetchGroupData();
-  }, [groupId, user.name]);
+  }, [groupId, user.email]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -112,15 +117,29 @@ const InvestmentGroup = ({ user }: InvestmentGroupProps) => {
             <div className="flex items-center">
               <img src="/brand_assets/svg/Color logo - no background.svg" alt="Segula Logo" className="h-10 w-auto" />
             </div>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => navigate('/dashboard')}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => navigate('/dashboard')}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Dashboard
+              </Button>
+              <a href="mailto:info@macabi.us" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10">
+                <Mail className="h-5 w-5 text-gray-600" />
+              </a>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={onLogout}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </div>
